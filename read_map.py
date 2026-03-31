@@ -36,7 +36,7 @@ def parse_map_file(file_path):
 
 # 使用示例
 if __name__ == "__main__":
-    map_list = parse_map_file("map.txt")
+    map_list = parse_map_file("maps/explore/map.txt")
 
     # 打印结果
     print("map = [")
@@ -45,4 +45,4 @@ if __name__ == "__main__":
     print("]")
 
     # 或者直接赋值给变量
-    map_variable = parse_map_file("map.txt")
+    map_variable = parse_map_file("maps/explore/map.txt")

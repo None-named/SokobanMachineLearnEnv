@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # 定义地图（符号表示）
-test_map_data = read_map.parse_map_file("map.txt")
+test_map_data = read_map.parse_map_file("maps/explore/map.txt")
 
 # 创建环境
 env = Env.SokobanEnv(test_map_data)
@@ -16,8 +16,6 @@ obs, _ = env.reset()
 actions_name = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
 for _ in range(50):
     action = env.action_space.sample()  # 随机动作
-    print("Before")
-    env.render()
     print(f"Action: {actions_name[action]}")
     obs, reward, terminated, truncated, info = env.step(action)
     print("After")

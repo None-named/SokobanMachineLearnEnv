@@ -5,7 +5,7 @@ import time
 import matplotlib.pyplot as plt
 
 # 定义地图（符号表示）
-test_map_data = read_map.parse_map_file("map.txt")
+test_map_data = read_map.parse_map_file("maps/explore/map.txt")
 
 # 创建环境
 env = Env.SokobanEnv(test_map_data)

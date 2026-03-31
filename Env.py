@@ -61,7 +61,7 @@ class SokobanEnv(gym.Env):
 
         # 1. 基础逻辑：撞墙判断
         if not (0 <= nr < self.height and 0 <= nc < self.width) or next_state[nr, nc] == 1:
-            return self.state, -0.5, False, False, {}  # 撞墙惩罚更高
+            return self.state, -0.5, True, False, {"reason": "illegal move"}
 
         target_cell = next_state[nr, nc]
         moved = False
@@ -83,30 +83,29 @@ class SokobanEnv(gym.Env):
                         # 3. 清除目标点（箱子推入的格子）
                         next_state[nnr, nnc] = 0
                         moved = True
-                        reward += 5.0  # 完成一个目标的奖励
+                        reward += 10  # 完成一个目标的奖励
                     else:
                         # 普通推箱子（推到空地，或箱子已在目标点上推到另一个目标点/空地）
                         next_state[nnr, nnc] = 5 if beyond_cell == 3 else 2
                         self._apply_move(next_state, r, c, nr, nc)
                         moved = True
-                        if beyond_cell == 3:
-                            reward += 1.0
 
         # 3. 重复状态检查 (Hash Check)
         if moved:
             new_hash = self._get_hash(next_state)
             if new_hash in self.history:
                 # 如果这个状态以前出现过，视为非法移动，退回原状态
-                return self.state, -0.2, False, False, {"reason": "repeated_state"}
+                return self.state, -0.5, True, False, {"reason": "repeated_state"}
             else:
                 # 合法的新状态，更新地图和历史记录
                 self.state = next_state
                 self.history.add(new_hash)
                 self.player_pos = (nr, nc)
+                reward = reward + 1
 
         # 4. 胜利检查（没有箱子且没有裸露的目标点）
         if not np.any(self.state == 2) and not np.any(self.state == 3):
-            reward += 10.0
+            reward += 100
             terminated = True
 
         return self.state, reward, terminated, False, {}
@@ -121,4 +120,3 @@ class SokobanEnv(gym.Env):
         for row in self.state:
             print("".join([inv_map[cell] for cell in row]))
         print(f"History Size: {len(self.history)}")
-        print("-" * self.width)
