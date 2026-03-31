@@ -13,10 +13,18 @@ env = Env.SokobanEnv(test_map_data)
 
 # 运行示例
 obs, _ = env.reset()
-for _ in range(5):
+actions_name = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
+for _ in range(50):
     action = env.action_space.sample()  # 随机动作
-    obs, reward, terminated, truncated, info = env.step(action)
+    print("Before")
     env.render()
+    print(f"Action: {actions_name[action]}")
+    obs, reward, terminated, truncated, info = env.step(action)
+    print("After")
     if terminated:
         obs, _ = env.reset()
+        print("rest!")
+    else:
+        env.render()
+    print(" ")
 env.close()
