@@ -22,4 +22,5 @@ while True:
         obs, _ = env.reset()
         break
     env.render()
+    time.sleep(0.25)
 env.close()
