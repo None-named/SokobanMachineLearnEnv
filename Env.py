@@ -1,3 +1,4 @@
+import pygame
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
@@ -28,6 +29,25 @@ class SokobanEnv(gym.Env):
         self.history = set()
         self.reset()
 
+        # Pygame 初始化
+        pygame.init()
+        self.cell_size = 50  # 每个格子的像素大小
+        self.screen_width = self.width * self.cell_size
+        self.screen_height = self.height * self.cell_size
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption("Sokoban Game")
+
+        # 颜色定义
+        self.colors = {
+            0: (255, 255, 255),  # 白色 - 空地
+            1: (0, 0, 0),  # 黑色 - 墙壁
+            2: (255, 255, 0),  # 黄色 - 箱子
+            3: (0, 255, 0),  # 绿色 - 目标点
+            4: (0, 0, 255),  # 蓝色 - 玩家
+            5: (128, 128, 0),  # 暗黄色 - 箱子在目标点上
+            6: (0, 0, 128)  # 深蓝色 - 玩家在目标点上
+        }
+
     def _get_hash(self, state):
         """将当前的地图状态转换为唯一的哈希值"""
         return hash(state.tobytes())
@@ -54,7 +74,7 @@ class SokobanEnv(gym.Env):
         nr, nc = r + dr, c + dc
         nnr, nnc = nr + dr, nc + dc
 
-        # 先复制一份当前状态进行“虚拟移动”
+        # 先复制一份当前状态进行"虚拟移动"
         next_state = self.state.copy()
         reward = -0.1
         terminated = False
@@ -116,7 +136,41 @@ class SokobanEnv(gym.Env):
         state_map[nr, nc] = 6 if state_map[nr, nc] in [3, 5] else 4
 
     def render(self):
-        inv_map = {v: k for k, v in self.char_to_int.items()}
-        for row in self.state:
-            print("".join([inv_map[cell] for cell in row]))
-        print(f"History Size: {len(self.history)}")
+        # 填充背景
+        self.screen.fill((200, 200, 200))
+
+        # 绘制地图
+        for r in range(self.height):
+            for c in range(self.width):
+                cell_value = self.state[r, c]
+                color = self.colors[cell_value]
+
+                # 绘制方块
+                pygame.draw.rect(
+                    self.screen,
+                    color,
+                    (c * self.cell_size, r * self.cell_size, self.cell_size, self.cell_size)
+                )
+
+                # 如果是玩家，绘制圆形
+                if cell_value in [4, 6]:
+                    player_x = c * self.cell_size + self.cell_size // 2
+                    player_y = r * self.cell_size + self.cell_size // 2
+                    pygame.draw.circle(
+                        self.screen,
+                        (0, 0, 255),  # 蓝色
+                        (player_x, player_y),
+                        self.cell_size // 3
+                    )
+
+        # 更新显示
+        pygame.display.flip()
+
+        # 事件处理
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+    def close(self):
+        pygame.quit()

@@ -24,5 +24,5 @@ for _ in range(50):
         print("rest!")
     else:
         env.render()
+        time.sleep(0.25)
     print(" ")
-env.close()
