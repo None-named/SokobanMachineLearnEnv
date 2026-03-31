@@ -14,11 +14,12 @@ loaded_model = PPO.load("Sokoban_Refined", env=env)
 
 # 运行示例
 obs, _ = env.reset()
-for _ in range(10):
+while True:
     action, _ = loaded_model.predict(obs, deterministic=True)
     action = int(action)
     obs, reward, terminated, truncated, info = env.step(action)
-    env.render()
     if terminated:
         obs, _ = env.reset()
+        break
+    env.render()
 env.close()
