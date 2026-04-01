@@ -4,12 +4,20 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3.common.callbacks import CheckpointCallback
+import time
+
+category = "finish_goal"
+map_num = 1
+
+
+map_path = "maps/"+ category +"/map"+str(map_num)+".txt"
+out_path = "out/"+ category +"/Sokoban_Refined"+time.strftime("%Y%m%d-%H%M%S")
+save_model_path = "models/" + category + "/"
 
 
 # 1. 环境包装 (Vectorization & Normalization)# 使用 DummyVecEnv 包装环境，并进行奖励归一化，这对 PPO 的稳定性至关重要
 def make_env():
-    return Env.SokobanEnv(read_map.parse_map_file("maps/explore/map.txt"))  # 训练时关闭渲染以提高速度
-
+    return Env.SokobanEnv(read_map.parse_map_file("maps/"+ category +"/map"+str(map_num)+".txt"))  # 训练时关闭渲染以提高速度
 
 env = DummyVecEnv([make_env])
 # 归一化奖励和观测值，有助于算法更快收敛
@@ -26,28 +34,27 @@ model = PPO(
     gamma=0.99,  # 折扣因子：对未来奖励的重视程度
     gae_lambda=0.95,  # GAE 参数：权衡方差与偏差
     clip_range=0.2,  # PPO 剪切范围：防止策略更新过大
-    ent_coef=0.3,  # 熵系数：鼓励探索，防止过早陷入局部最优
+    ent_coef=0.5,  # 熵系数：鼓励探索，防止过早陷入局部最优
     vf_coef=0.5,  # 价值函数系数：平衡策略损失和价值损失
     max_grad_norm=0.5,  # 梯度裁剪：防止梯度爆炸
-    tensorboard_log="./sokoban_log/explore",  # TensorBoard 日志，用于观察训练曲线
+    tensorboard_log="./sokoban_log/"+category,  # TensorBoard 日志，用于观察训练曲线
     verbose=1
 )
 
 # 3. 添加定时保存的回调函数
 checkpoint_callback = CheckpointCallback(
     save_freq=1_0000,
-    save_path='./models/explore/',
-    name_prefix='sokoban_ppo'
+    save_path='./models/'+category+'/',
+    name_prefix='sokoban_ppo'+time.strftime("%Y%m%d-%H%M%S"),
 )
 
 # 4. 开始训练
 print("开始精细化训练...")
 model.learn(
     total_timesteps=50_0000,  # 推箱子较难，建议增加步数
-    callback=checkpoint_callback
 )
 
 # 5. 保存最终模型与统计信息
-model.save("out/explore/Sokoban_Refined")
+model.save(out_path)
 # env.save("vec_normalize.pkl") # 别忘了保存归一化参数，否则推理时效果很差
 print("训练完成并保存")
