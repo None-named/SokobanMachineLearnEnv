@@ -1,12 +1,12 @@
 from stable_baselines3 import PPO
 import Env
-import read_map
+import utils
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 
 # 定义地图（符号表示）
-test_map_data = read_map.parse_map_file("maps/explore/map.txt")
+test_map_data = utils.parse_map_file("maps/explore/map1.txt")
 
 # 创建环境
 env = Env.SokobanEnv(test_map_data)

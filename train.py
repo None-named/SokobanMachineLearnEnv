@@ -1,5 +1,5 @@
 import Env
-import read_map
+import utils
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
@@ -7,17 +7,16 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 import time
 
 category = "finish_goal"
-map_num = 1
+map_index = 1
 
-
-map_path = "maps/"+ category +"/map"+str(map_num)+".txt"
-out_path = "out/"+ category +"/Sokoban_Refined"+time.strftime("%Y%m%d-%H%M%S")
+map_path = "maps/" + category +"/map" + str(map_index) + ".txt"
+out_path = "out/"+ category
 save_model_path = "models/" + category + "/"
 
 
 # 1. 环境包装 (Vectorization & Normalization)# 使用 DummyVecEnv 包装环境，并进行奖励归一化，这对 PPO 的稳定性至关重要
 def make_env():
-    return Env.SokobanEnv(read_map.parse_map_file("maps/"+ category +"/map"+str(map_num)+".txt"))  # 训练时关闭渲染以提高速度
+    return Env.SokobanEnv(utils.parse_map_file("maps/" + category +"/map" + str(map_index) + ".txt"))  # 训练时关闭渲染以提高速度
 
 env = DummyVecEnv([make_env])
 # 归一化奖励和观测值，有助于算法更快收敛
@@ -55,6 +54,6 @@ model.learn(
 )
 
 # 5. 保存最终模型与统计信息
-model.save(out_path)
+model.save(out_path+"/Sokoban-"+time.strftime("%Y%m%d-%H%M%S"))
 # env.save("vec_normalize.pkl") # 别忘了保存归一化参数，否则推理时效果很差
 print("训练完成并保存")

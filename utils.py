@@ -1,3 +1,4 @@
+import os
 def parse_map_file(file_path):
     """
     读取地图文件并转换为二维列表
@@ -33,16 +34,13 @@ def parse_map_file(file_path):
         print(f"读取文件时发生错误: {e}")
         return []
 
+def get_latest_file_concise(folder_path):
+    """更简洁的获取最新文件的方式"""
+    all_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
-# 使用示例
-if __name__ == "__main__":
-    map_list = parse_map_file("maps/explore/map.txt")
+    if not all_files:
+        return None
 
-    # 打印结果
-    print("map = [")
-    for row in map_list:
-        print(f"    {row},")
-    print("]")
-
-    # 或者直接赋值给变量
-    map_variable = parse_map_file("maps/explore/map.txt")
+    # 使用 lambda 函数作为 key 来排序
+    latest_filename = max(all_files, key=lambda x: os.path.getmtime(os.path.join(folder_path, x)))
+    return os.path.join(folder_path, latest_filename)
