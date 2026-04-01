@@ -5,9 +5,9 @@ import numpy as np
 
 
 class SokobanEnv(gym.Env):
-    def __init__(self, custom_map):
+    def __init__(self, custom_map, render=None):
         super(SokobanEnv, self).__init__()
-
+        self.render_mode = render
         # 1. 定义映射表
         '''
         0: 空地 ( )
@@ -29,13 +29,7 @@ class SokobanEnv(gym.Env):
         self.history = set()
         self.reset()
 
-        # Pygame 初始化
-        pygame.init()
-        self.cell_size = 50  # 每个格子的像素大小
-        self.screen_width = self.width * self.cell_size
-        self.screen_height = self.height * self.cell_size
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        pygame.display.set_caption("Sokoban Game")
+        self.is_win_init = False
 
         # 颜色定义
         self.colors = {
@@ -76,12 +70,12 @@ class SokobanEnv(gym.Env):
 
         # 先复制一份当前状态进行"虚拟移动"
         next_state = self.state.copy()
-        reward = -0.1
+        reward = 0
         terminated = False
 
         # 1. 基础逻辑：撞墙判断
         if not (0 <= nr < self.height and 0 <= nc < self.width) or next_state[nr, nc] == 1:
-            return self.state, -0.5, True, False, {"reason": "illegal move"}
+            return self.state, -5, False, True, {"reason": "illegal move"}
 
         target_cell = next_state[nr, nc]
         moved = False
@@ -103,7 +97,7 @@ class SokobanEnv(gym.Env):
                         # 3. 清除目标点（箱子推入的格子）
                         next_state[nnr, nnc] = 0
                         moved = True
-                        reward += 10  # 完成一个目标的奖励
+                        reward += 100  # 完成一个目标的奖励
                     else:
                         # 普通推箱子（推到空地，或箱子已在目标点上推到另一个目标点/空地）
                         next_state[nnr, nnc] = 5 if beyond_cell == 3 else 2
@@ -115,7 +109,7 @@ class SokobanEnv(gym.Env):
             new_hash = self._get_hash(next_state)
             if new_hash in self.history:
                 # 如果这个状态以前出现过，视为非法移动，退回原状态
-                return self.state, -0.5, True, False, {"reason": "repeated_state"}
+                return self.state, -5, False, True, {"reason": "repeated_state"}
             else:
                 # 合法的新状态，更新地图和历史记录
                 self.state = next_state
@@ -125,7 +119,7 @@ class SokobanEnv(gym.Env):
 
         # 4. 胜利检查（没有箱子且没有裸露的目标点）
         if not np.any(self.state == 2) and not np.any(self.state == 3):
-            reward += 100
+            reward += 1000
             terminated = True
 
         return self.state, reward, terminated, False, {}
@@ -136,6 +130,16 @@ class SokobanEnv(gym.Env):
         state_map[nr, nc] = 6 if state_map[nr, nc] in [3, 5] else 4
 
     def render(self):
+        if self.is_win_init is False:
+            # Pygame 初始化
+            pygame.init()
+            self.cell_size = 50  # 每个格子的像素大小
+            self.screen_width = self.width * self.cell_size
+            self.screen_height = self.height * self.cell_size
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+            pygame.display.set_caption("Sokoban Game")
+            self.is_win_init = True
+
         # 填充背景
         self.screen.fill((200, 200, 200))
 
