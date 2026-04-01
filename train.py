@@ -4,6 +4,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import EvalCallback
 import time
 
 category = utils.read_json_variable("states.json", "category")
@@ -29,11 +30,11 @@ model = PPO(
     learning_rate=3e-4,  # 学习率：控制模型权重更新的步长
     n_steps=2048,  # 采样步数：每次更新前收集多少步数据
     batch_size=64,  # 批次大小：每次梯度下降使用的样本数
-    n_epochs=10,  # 更新频率：每批数据重复优化的次数
+    n_epochs=20,  # 更新频率：每批数据重复优化的次数
     gamma=0.99,  # 折扣因子：对未来奖励的重视程度
     gae_lambda=0.95,  # GAE 参数：权衡方差与偏差
-    clip_range=0.2,  # PPO 剪切范围：防止策略更新过大
-    ent_coef=0.5,  # 熵系数：鼓励探索，防止过早陷入局部最优
+    clip_range=0.6,  # PPO 剪切范围：防止策略更新过大
+    ent_coef=0,  # 熵系数：鼓励探索，防止过早陷入局部最优
     vf_coef=0.5,  # 价值函数系数：平衡策略损失和价值损失
     max_grad_norm=0.5,  # 梯度裁剪：防止梯度爆炸
     tensorboard_log="./sokoban_log/"+category,  # TensorBoard 日志，用于观察训练曲线
@@ -44,13 +45,23 @@ model = PPO(
 checkpoint_callback = CheckpointCallback(
     save_freq=1_0000,
     save_path='./models/'+category+'/',
-    name_prefix='sokoban_ppo'+time.strftime("%Y%m%d-%H%M%S"),
+    name_prefix='sokoban_checkpoint'+time.strftime("%Y%m%d-%H%M%S"),
+)
+
+eval_callback = EvalCallback(
+    env,
+    best_model_save_path="./"+category+"/best_model",
+    log_path="./"+category+"/eval_logs",
+    eval_freq=1_0000,          # 每5万步评估一次
+    deterministic=True,
+    render=False,
 )
 
 # 4. 开始训练
 print("开始精细化训练...")
 model.learn(
-    total_timesteps=50_0000,  # 推箱子较难，建议增加步数
+    total_timesteps=10_0000,  # 推箱子较难，建议增加步数
+    callback=[checkpoint_callback,eval_callback]
 )
 
 # 5. 保存最终模型与统计信息
