@@ -116,7 +116,8 @@ class SokobanEnv(gym.Env):
                 self.history.add(new_hash)
                 self.player_pos = (nr, nc)
                 reward = reward + 1
-
+        else:
+            return self.state, -5, False, True, {"reason": "illegal move"}
         # 4. 胜利检查（没有箱子且没有裸露的目标点）
         if not np.any(self.state == 2) and not np.any(self.state == 3):
             reward += 1000
