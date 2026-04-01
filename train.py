@@ -6,8 +6,8 @@ from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3.common.callbacks import CheckpointCallback
 import time
 
-category = "finish_goal"
-map_index = 1
+category = utils.read_json_variable("states.json", "category")
+map_index = utils.read_json_variable("states.json", "map_index")
 
 map_path = "maps/" + category +"/map" + str(map_index) + ".txt"
 out_path = "out/"+ category
