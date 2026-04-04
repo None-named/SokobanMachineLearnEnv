@@ -19,7 +19,7 @@ class SokobanEnv(gym.Env):
         6: 玩家在目标点上 (+)
         '''
         self.char_to_int = {' ': 0, '#': 1, '$': 2, '.': 3, '@': 4, '*': 5, '+': 6}
-        self.initial_map = np.array([[self.char_to_int[c] for c in row] for row in custom_map])
+        self.initial_map = np.array([[self.char_to_int[c] for c in row] for row in custom_map],dtype=np.int32)
         self.height, self.width = self.initial_map.shape
 
         self.action_space = spaces.Discrete(4)
