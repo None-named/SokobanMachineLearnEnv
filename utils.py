@@ -1,5 +1,7 @@
 import os
 import json
+from pathlib import Path
+
 def parse_map_file(file_path):
     """
     读取地图文件并转换为二维列表
@@ -84,3 +86,94 @@ def read_json_variable(file_path, key=None):
     except Exception as e:
         print(f"❌ 发生未知错误: {e}")
         return None
+
+
+def collect_txt_files(root_dir, recursive=False):
+    """
+    收集指定目录下的所有 .txt 文件。
+
+    参数:
+        root_dir (str): 根目录路径
+        recursive (bool): 是否递归搜索子目录 (默认: False)
+
+    返回:
+        list: 包含所有 .txt 文件绝对路径的列表
+    """
+    root_path = Path(root_dir)
+    txt_files = []
+
+    if recursive:
+        # 使用 rglob 进行递归搜索 (包括子目录)
+        # rglob('*.txt') 相当于 os.walk 递归查找
+        pattern = '*.txt'
+        files = root_path.rglob(pattern)
+    else:
+        # 使用 glob 仅搜索当前目录
+        pattern = '*.txt'
+        files = root_path.glob(pattern)
+
+    # 过滤并确保只获取文件 (排除同名目录的情况)
+    txt_files = [str(file) for file in files if file.is_file()]
+
+    return txt_files
+
+def get_directories(root_dir, recursive=False):
+    """
+    获取目录下的所有文件夹。
+
+    参数:
+        root_dir (str): 目标根目录路径
+        recursive (bool): 是否递归获取所有子目录 (默认: False)
+
+    返回:
+        list: 包含所有文件夹路径的列表
+    """
+    root_path = Path(root_dir)
+    dirs = []
+
+    if recursive:
+        # rglob('*') 会递归匹配所有路径
+        # 配合 filter 筛选出目录
+        dirs = [str(d) for d in root_path.rglob('*') if d.is_dir()]
+    else:
+        # iterdir() 仅遍历当前层级
+        dirs = [str(d) for d in root_path.iterdir() if d.is_dir()]
+
+    return dirs
+
+def get_subfolder_names(directory_path, recursive=False):
+    """
+    获取指定目录下所有子文件夹的名称。
+
+    参数:
+        directory_path (str 或 Path): 要扫描的目录路径。
+        recursive (bool): 是否递归获取所有层级的子文件夹。默认为 False。
+
+    返回:
+        list: 子文件夹名称的列表。如果 recursive=False，返回直接子文件夹；
+              如果 recursive=True，返回所有层级的子文件夹（使用相对路径）。
+
+    示例:
+        >>> get_subfolder_names("./my_folder")
+        ['docs', 'images', 'src']
+
+        >>> get_subfolder_names("./my_folder", recursive=True)
+        ['docs', 'images', 'src', 'docs/api', 'docs/guides', 'images/icons']
+    """
+    path = Path(directory_path)
+    if not path.is_dir():
+        return []
+
+    if not recursive:
+        # 仅获取直接子文件夹
+        return [item.name for item in path.iterdir() if item.is_dir()]
+    else:
+        # 递归获取所有层级的子文件夹
+        result = []
+        for item in path.iterdir():
+            if item.is_dir():
+                result.append(item.name)
+                # 递归获取子文件夹下的内容，并添加相对路径前缀
+                sub_folders = get_subfolder_names(item, recursive=True)
+                result.extend(f"{item.name}/{sub}" for sub in sub_folders)
+        return result
