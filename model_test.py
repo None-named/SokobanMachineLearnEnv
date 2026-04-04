@@ -3,8 +3,10 @@ import Env
 import utils
 import time
 
+
 def test_ppo_model(model: PPO, env: Env.SokobanEnv, render: bool) -> bool:
     obs, _ = env.reset()
+    actions_name = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
     # 统计信息
     total_reward = 0
     total_steps = 0
@@ -32,7 +34,7 @@ def test_ppo_model(model: PPO, env: Env.SokobanEnv, render: bool) -> bool:
         print("Total Steps:", total_steps)
     else:
         elapsed_time = end_time - total_steps
-    return total_reward > 0
+    return reward > 0
 
 
 if "__main__" == __name__:
