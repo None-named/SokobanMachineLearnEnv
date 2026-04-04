@@ -20,11 +20,9 @@ for _ in range(50):
     action = env.action_space.sample()  # 随机动作
     print(f"Action: {actions_name[action]}")
     obs, reward, terminated, truncated, info = env.step(action)
-    print("After")
-    if terminated:
+    if terminated or truncated:
         obs, _ = env.reset()
         print("rest!")
     else:
-        env.render()
         time.sleep(0.25)
-    print(" ")
+    env.render()
