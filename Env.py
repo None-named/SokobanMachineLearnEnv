@@ -14,9 +14,10 @@ class SokobanEnv(gym.Env):
     BOX_ON_TARGET = 5  # 虽然逻辑上箱子会消失，但保留定义以防初始化需要
     PLAYER_ON_TARGET = 6
 
-    def __init__(self, custom_map, render=None):
+    def __init__(self, custom_map, render=None, seed=None):
         super(SokobanEnv, self).__init__()
         self.render_mode = render
+        self.seed = seed
 
         # 建立字符映射
         self.char_to_int = {' ': 0, '#': 1, '$': 2, '.': 3, '@': 4, '*': 5, '+': 6}
