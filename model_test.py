@@ -4,7 +4,7 @@ import utils
 import time
 
 
-def test_ppo_model(model: PPO, env: Env.SokobanEnv, render: bool) -> bool:
+def test_ppo_model(model: PPO, env: Env.SokobanEnv, render: bool = False) -> bool:
     obs, _ = env.reset()
     actions_name = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
     # 统计信息
@@ -38,9 +38,7 @@ def test_ppo_model(model: PPO, env: Env.SokobanEnv, render: bool) -> bool:
 
 
 if "__main__" == __name__:
-    # category = utils.read_json_variable("states.json", "category")
     category = "finish_goal"
-    # map_index = utils.read_json_variable("states.json", "map_index")
     map_index = 2
 
     map_path = "maps/" + category + "/map" + str(map_index) + ".txt"

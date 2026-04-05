@@ -1,4 +1,5 @@
 import Env
+import model_test
 import utils
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
@@ -8,6 +9,7 @@ from stable_baselines3.common.callbacks import EvalCallback
 import time
 
 default_env = Env.SokobanEnv(utils.parse_map_file("maps/finish_goal/map1.txt"))
+
 
 def make_env() -> Env.SokobanEnv:
     return Env.SokobanEnv(
@@ -55,8 +57,8 @@ def get_checkpoint_callback(log_path: str) -> CheckpointCallback:
 
 
 if __name__ == "__main__":
-    category = utils.read_json_variable("states.json", "category")
-    map_index = utils.read_json_variable("states.json", "map_index")
+    category = "finish_goal"
+    map_index = 2
 
     map_path = "maps/" + category + "/map" + str(map_index) + ".txt"
     out_path = "out/" + category
