@@ -2,6 +2,7 @@ import os
 import json
 from pathlib import Path
 
+
 def parse_map_file(file_path):
     """
     读取地图文件并转换为二维列表
@@ -37,16 +38,59 @@ def parse_map_file(file_path):
         print(f"读取文件时发生错误: {e}")
         return []
 
-def get_latest_file_concise(folder_path):
-    """更简洁的获取最新文件的方式"""
-    all_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
-    if not all_files:
+def get_latest_item(directory_path, file_only=False, dir_only=False):
+    """
+    获取指定目录下最新的文件或文件夹路径。
+
+    :param directory_path: 目标目录路径 (str 或 Path)
+    :param file_only: 如果为 True，只查找文件
+    :param dir_only: 如果为 True，只查找文件夹
+    :return: 最新的 Path 对象，如果目录为空则返回 None
+    """
+    path = Path(directory_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"目录不存在: {directory_path}")
+
+    # 获取目录下的所有条目
+    items = list(path.iterdir())
+
+    # 根据参数进行过滤
+    if file_only:
+        items = [item for item in items if item.is_file()]
+    elif dir_only:
+        items = [item for item in items if item.is_dir()]
+
+    if not items:
+        return None
+
+    # 使用 os.path.getmtime 获取修改时间并排序
+    # key 函数返回每个路径的修改时间戳
+    latest_item = max(items, key=lambda x: os.path.getmtime(x))
+
+    return latest_item
+
+
+def get_latest_file_concise(folder_path, include_dirs=False):
+    """获取最新文件/文件夹，include_dirs 控制是否包含文件夹"""
+    # 根据 include_dirs 参数决定获取列表的方式
+    if include_dirs:
+        # 获取所有文件和文件夹
+        all_items = os.listdir(folder_path)
+        # 过滤出确实存在的项（文件和文件夹）
+        all_items = [item for item in all_items if os.path.exists(os.path.join(folder_path, item))]
+    else:
+        # 只获取文件
+        all_items = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+
+    if not all_items:
         return None
 
     # 使用 lambda 函数作为 key 来排序
-    latest_filename = max(all_files, key=lambda x: os.path.getmtime(os.path.join(folder_path, x)))
-    return os.path.join(folder_path, latest_filename)
+    latest_item_name = max(all_items, key=lambda x: os.path.getmtime(os.path.join(folder_path, x)))
+    return os.path.join(folder_path, latest_item_name)
+
 
 def read_json_variable(file_path, key=None):
     """
@@ -117,6 +161,7 @@ def collect_txt_files(root_dir, recursive=False):
 
     return txt_files
 
+
 def get_directories(root_dir, recursive=False):
     """
     获取目录下的所有文件夹。
@@ -140,6 +185,7 @@ def get_directories(root_dir, recursive=False):
         dirs = [str(d) for d in root_path.iterdir() if d.is_dir()]
 
     return dirs
+
 
 def get_subfolder_names(directory_path, recursive=False):
     """
