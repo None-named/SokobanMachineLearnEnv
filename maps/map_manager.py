@@ -8,5 +8,5 @@ def get_maps(root: Path = Path("./")) -> list[dict[str, str]]:
         if sub_file.is_dir():
             category = sub_file.name
             for _m in sub_file.iterdir():
-                maps.append({category:str(_m.absolute())})
+                maps.append({category:str(_m.absolute().as_posix())})
     return maps
