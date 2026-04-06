@@ -81,7 +81,7 @@ class SokobanEnv(gym.Env):
             # 情况 A: 普通移动
             self._apply_player_move(temp_state, r, c, nr, nc)
             moved = True
-            reward = 1
+            reward += 0.1
 
         elif target_cell in [self.BOX, self.BOX_ON_TARGET]:
             # 情况 B: 推箱子逻辑
@@ -101,22 +101,64 @@ class SokobanEnv(gym.Env):
 
         # 状态一致性检查（重复路径/无效移动）
         if moved:
+            # 检查重复状态
             new_hash = self._get_hash(temp_state)
             if new_hash in self.history:
-                return self.state, -5, False, True, {"reason": "loop_detected"}
+                return self.state, -5, False, True, {"reason": "loop"}
 
+            # 检查是否进入锁死状态
             self.state = temp_state
+            if self._is_deadlocked():
+                # 锁死属于训练失败，给予较大负分并结束回合
+                return self.state, -50, False, True, {"reason": "deadlock"}
+
             self.history.add(new_hash)
             self.player_pos = (nr, nc)
         else:
-            return self.state, -5, False, True, {"reason": "blocked"}
+            # 撞墙或推不动
+            return self.state, -1, False, False, {"reason": "blocked"}
 
-        # 4. 胜利条件判断
+        # 胜利检查
         terminated = self._check_win()
-        if terminated:
-            reward += 1000
+        reward = 1000 if terminated else reward  # reward根据之前的逻辑计算
 
         return self.state, reward, terminated, False, {}
+
+    def _is_deadlocked(self):
+        box_positions = np.argwhere(self.state == self.BOX)
+        target_positions = np.argwhere(self.state == self.TARGET)
+
+        # 如果箱子比目标点多，直接判定失败
+        if len(box_positions) > len(target_positions):
+            return True
+
+        for r, c in box_positions:
+            # 1. 基础死角检测 (Corner Deadlock)
+            up = not self._is_valid_pos(r - 1, c) or self.state[r - 1, c] == self.WALL
+            down = not self._is_valid_pos(r + 1, c) or self.state[r + 1, c] == self.WALL
+            left = not self._is_valid_pos(r, c - 1) or self.state[r, c - 1] == self.WALL
+            right = not self._is_valid_pos(r, c + 1) or self.state[r, c + 1] == self.WALL
+
+            if (up and left) or (up and right) or (down and left) or (down and right):
+                return True
+
+            # 2. 严谨墙边检测 (Wall Deadlock)
+            # 如果箱子在水平墙边（上或下是墙）
+            if up or down:
+                # 检查这一整行是否没有任何目标点
+                # 在经典推箱子中，如果一整行墙边没有目标点，箱子进去了就出不来
+                row_targets = [tc for tr, tc in target_positions if tr == r]
+                if not row_targets:
+                    return True
+
+            # 如果箱子在垂直墙边（左或右是墙）
+            if left or right:
+                # 检查这一整列是否没有任何目标点
+                col_targets = [tr for tr, tc in target_positions if tc == c]
+                if not col_targets:
+                    return True
+
+        return False
 
     def _apply_player_move(self, state, r, c, nr, nc):
         """处理玩家从 (r,c) 移动到 (nr,nc) 的地标变换"""
