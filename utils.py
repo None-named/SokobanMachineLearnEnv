@@ -223,3 +223,10 @@ def get_subfolder_names(directory_path, recursive=False):
                 sub_folders = get_subfolder_names(item, recursive=True)
                 result.extend(f"{item.name}/{sub}" for sub in sub_folders)
         return result
+
+
+def split_list(lst, chunk_size):
+    """
+    将列表 lst 按 chunk_size 的长度分割成子列表
+    """
+    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
